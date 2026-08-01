@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3E4C8">
+<title>Registro de Horas Extra</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ONBOARDING -->
+  <section id="view-onboarding" class="view hidden">
+    <header class="topbar">
+      <h1>Configuración inicial</h1>
+    </header>
+    <div class="scroll-area">
+      <p class="hint">Indica tu horario habitual para cada día. Desmarca los días que no trabajas.</p>
+      <div id="onboarding-schedule" class="schedule-list"></div>
+
+      <p class="hint">¿A qué correo quieres enviar el reporte de horas?</p>
+      <input type="email" id="onboarding-email" class="input" placeholder="tucorreo@ejemplo.com" required>
+
+      <button id="btn-finish-onboarding" class="btn btn-primary btn-block">Comenzar a registrar</button>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <section id="view-home" class="view hidden">
+    <header class="topbar">
+      <div>
+        <h1>Horas Extra</h1>
+        <p id="today-date" class="subtitle"></p>
+      </div>
+      <button id="btn-menu" class="icon-btn" aria-label="Menú">☰</button>
+    </header>
+
+    <div class="scroll-area">
+      <div class="card status-card">
+        <p class="status-label">Estado de hoy</p>
+        <p id="status-text" class="status-text">Sin marcar entrada</p>
+        <div class="totals-row">
+          <div class="total-item">
+            <span id="total-jornada" class="total-value">0h 00m</span>
+            <span class="total-label">Jornada</span>
+          </div>
+          <div class="total-item">
+            <span id="total-adicionales" class="total-value">0h 00m</span>
+            <span class="total-label">Adicionales</span>
+          </div>
+          <div class="total-item total-item--main">
+            <span id="total-dia" class="total-value">0h 00m</span>
+            <span class="total-label">Total hoy</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-grid">
+        <button id="btn-entrada" class="btn action-btn action-entrada">
+          <span class="action-icon">→</span>
+          <span>Entrada</span>
+        </button>
+        <button id="btn-salida" class="btn action-btn action-salida">
+          <span class="action-icon">←</span>
+          <span>Salida</span>
+        </button>
+        <button id="btn-adicional" class="btn action-btn action-adicional">
+          <span class="action-icon">+1h</span>
+          <span>Hora adicional</span>
+        </button>
+      </div>
+
+      <div class="section-header">
+        <h2>Historial</h2>
+      </div>
+      <div id="history-list" class="history-list"></div>
+
+      <button id="btn-send-report" class="btn btn-secondary btn-block">Enviar reporte por correo</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="view hidden">
+    <header class="topbar">
+      <button id="btn-back-settings" class="icon-btn" aria-label="Volver">←</button>
+      <h1>Configuración</h1>
+    </header>
+    <div class="scroll-area">
+      <p class="hint">Horario laboral por día</p>
+      <div id="settings-schedule" class="schedule-list"></div>
+
+      <p class="hint">Correo para el reporte</p>
+      <input type="email" id="settings-email" class="input" placeholder="tucorreo@ejemplo.com">
+
+      <button id="btn-save-settings" class="btn btn-primary btn-block">Guardar cambios</button>
+
+      <div class="danger-zone">
+        <button id="btn-clear-history" class="btn btn-danger btn-block">Borrar historial de registros</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU OVERLAY -->
+  <div id="menu-overlay" class="overlay hidden">
+    <div class="menu-panel">
+      <button class="menu-item" data-action="settings">Configurar horario</button>
+      <button class="menu-item" data-action="send-report">Enviar reporte por correo</button>
+      <button class="menu-item menu-item--close" data-action="close">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- EDIT ENTRY MODAL -->
+  <div id="modal-overlay" class="overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">Editar registro</h3>
+      <label class="field-label">Entrada</label>
+      <input type="time" id="modal-entrada" class="input">
+      <label class="field-label">Salida</label>
+      <input type="time" id="modal-salida" class="input">
+      <label class="field-label">Horas adicionales</label>
+      <input type="number" id="modal-adicionales" class="input" min="0" step="1">
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-secondary">Cancelar</button>
+        <button id="modal-save" class="btn btn-primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="lib/xlsx.mini.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
