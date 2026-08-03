@@ -1,14 +1,14 @@
 # Registro de Horas Extra
 
-App web (PWA) minimalista para registrar la jornada laboral diaria (entrada, salida y horas adicionales) y enviar un reporte en Excel por correo, evitando que las horas extra queden sin pagar.
+App web (PWA) minimalista para registrar la jornada laboral diaria (entrada, salida y horas adicionales) y descargar un reporte en Excel, evitando que las horas extra queden sin pagar.
 
 ## Funcionalidad
 
-- Configuración inicial del horario laboral por día de la semana y del correo de destino.
+- Configuración inicial del horario laboral por día de la semana.
 - Botones de **Entrada**, **Salida** y **Hora adicional** (suma 1 hora fija al total del día).
 - Cálculo automático de horas trabajadas por día y acumulado en el historial.
 - Edición manual de registros pasados.
-- Exportación a Excel (.xlsx) y envío mediante el selector nativo de compartir del celular (o descarga + `mailto` como respaldo).
+- Exportación y descarga directa del reporte en Excel (.xlsx).
 - Funciona offline y es instalable en el celular (PWA).
 - Todos los datos se guardan solo en el dispositivo (localStorage), sin backend ni cuentas.
 

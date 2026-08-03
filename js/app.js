@@ -20,7 +20,7 @@
       var isWeekday = d.key >= 1 && d.key <= 5;
       schedule[d.key] = { enabled: isWeekday, start: "09:00", end: "18:00" };
     });
-    return { onboarded: false, email: "", schedule: schedule };
+    return { onboarded: false, schedule: schedule };
   }
 
   function loadConfig() {
@@ -106,11 +106,11 @@
   function cacheEls() {
     [
       "view-onboarding", "view-home", "view-settings",
-      "onboarding-schedule", "onboarding-email", "btn-finish-onboarding",
+      "onboarding-schedule", "btn-finish-onboarding",
       "today-date", "status-text", "total-jornada", "total-adicionales", "total-dia",
       "btn-entrada", "btn-salida", "btn-adicional", "btn-menu",
-      "history-list", "btn-send-report",
-      "btn-back-settings", "settings-schedule", "settings-email", "btn-save-settings", "btn-clear-history",
+      "history-list", "btn-download-report",
+      "btn-back-settings", "settings-schedule", "btn-save-settings", "btn-clear-history",
       "menu-overlay", "toast",
       "modal-overlay", "modal-title", "modal-entrada", "modal-salida", "modal-adicionales", "modal-cancel", "modal-save"
     ].forEach(function (id) {
@@ -354,14 +354,10 @@
     return rows;
   }
 
-  function sendReport() {
+  function downloadReport() {
     var keys = Object.keys(state.records);
     if (keys.length === 0) {
-      showToast("Todavía no hay registros para enviar");
-      return;
-    }
-    if (!state.config.email) {
-      showToast("Configura primero un correo en el menú");
+      showToast("Todavía no hay registros para descargar");
       return;
     }
 
@@ -372,55 +368,12 @@
     XLSX.utils.book_append_sheet(wb, ws, "Horas extra");
 
     var filename = "horas-extra-" + todayKey() + ".xlsx";
-    var subject = "Reporte de horas extra";
-    var shareText = "Adjunto el detalle de horas trabajadas y horas adicionales. Envíalo a: " + state.config.email;
-
-    function downloadFallback() {
-      XLSX.writeFile(wb, filename);
-      showToast("Excel descargado (" + filename + "). Se abrirá tu correo: adjúntalo manualmente antes de enviar.");
-      var fallbackBody = "Adjunta aquí el archivo " + filename + " que se acaba de descargar a tu dispositivo (revisa la carpeta de Descargas) con el detalle de horas trabajadas y horas adicionales.";
-      var mailto = "mailto:" + encodeURIComponent(state.config.email) +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(fallbackBody);
-      setTimeout(function () { window.location.href = mailto; }, 1200);
-    }
-
-    var file = null;
-    var canTryShare = false;
-    try {
-      var wbArray = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      var blob = new Blob([wbArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      file = new File([blob], filename, { type: blob.type });
-      canTryShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
-    } catch (e) {
-      canTryShare = false;
-    }
-
-    if (canTryShare) {
-      navigator.share({
-        files: [file],
-        title: subject,
-        text: shareText
-      }).then(function () {
-        showToast("Reporte compartido");
-      }).catch(function (err) {
-        if (err && err.name === "AbortError") return;
-        downloadFallback();
-      });
-      return;
-    }
-
-    downloadFallback();
+    XLSX.writeFile(wb, filename);
+    showToast("Excel descargado: " + filename);
   }
 
   function finishOnboarding() {
-    var email = els["onboarding-email"].value.trim();
-    if (!email) {
-      showToast("Ingresa un correo válido");
-      return;
-    }
     state.config.schedule = readScheduleEditor(els["onboarding-schedule"]);
-    state.config.email = email;
     state.config.onboarded = true;
     saveConfig(state.config);
     showView("home");
@@ -429,13 +382,11 @@
 
   function openSettings() {
     buildScheduleEditor(els["settings-schedule"], state.config.schedule);
-    els["settings-email"].value = state.config.email || "";
     showView("settings");
   }
 
   function saveSettings() {
     state.config.schedule = readScheduleEditor(els["settings-schedule"]);
-    state.config.email = els["settings-email"].value.trim();
     saveConfig(state.config);
     showToast("Configuración guardada");
     showView("home");
@@ -467,10 +418,10 @@
       var action = e.target.dataset ? e.target.dataset.action : null;
       if (action === "close") closeMenu();
       if (action === "settings") { closeMenu(); openSettings(); }
-      if (action === "send-report") { closeMenu(); sendReport(); }
+      if (action === "download-report") { closeMenu(); downloadReport(); }
     });
 
-    els["btn-send-report"].addEventListener("click", sendReport);
+    els["btn-download-report"].addEventListener("click", downloadReport);
 
     els["btn-back-settings"].addEventListener("click", function () { showView("home"); renderHome(); });
     els["btn-save-settings"].addEventListener("click", saveSettings);
