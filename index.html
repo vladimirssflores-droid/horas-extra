@@ -23,9 +23,6 @@
       <p class="hint">Indica tu horario habitual para cada día. Desmarca los días que no trabajas.</p>
       <div id="onboarding-schedule" class="schedule-list"></div>
 
-      <p class="hint">¿A qué correo quieres enviar el reporte de horas?</p>
-      <input type="email" id="onboarding-email" class="input" placeholder="tucorreo@ejemplo.com" required>
-
       <button id="btn-finish-onboarding" class="btn btn-primary btn-block">Comenzar a registrar</button>
     </div>
   </section>
@@ -80,7 +77,7 @@
       </div>
       <div id="history-list" class="history-list"></div>
 
-      <button id="btn-send-report" class="btn btn-secondary btn-block">Enviar reporte por correo</button>
+      <button id="btn-download-report" class="btn btn-secondary btn-block">Descargar reporte (Excel)</button>
     </div>
   </section>
 
@@ -94,9 +91,6 @@
       <p class="hint">Horario laboral por día</p>
       <div id="settings-schedule" class="schedule-list"></div>
 
-      <p class="hint">Correo para el reporte</p>
-      <input type="email" id="settings-email" class="input" placeholder="tucorreo@ejemplo.com">
-
       <button id="btn-save-settings" class="btn btn-primary btn-block">Guardar cambios</button>
 
       <div class="danger-zone">
@@ -109,7 +103,7 @@
   <div id="menu-overlay" class="overlay hidden">
     <div class="menu-panel">
       <button class="menu-item" data-action="settings">Configurar horario</button>
-      <button class="menu-item" data-action="send-report">Enviar reporte por correo</button>
+      <button class="menu-item" data-action="download-report">Descargar reporte (Excel)</button>
       <button class="menu-item menu-item--close" data-action="close">Cerrar</button>
     </div>
   </div>
