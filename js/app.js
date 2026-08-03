@@ -373,7 +373,7 @@
 
     var filename = "horas-extra-" + todayKey() + ".xlsx";
     var subject = "Reporte de horas extra";
-    var body = "Adjunto el detalle de horas trabajadas y horas adicionales.";
+    var shareText = "Adjunto el detalle de horas trabajadas y horas adicionales. Envíalo a: " + state.config.email;
 
     try {
       var wbArray = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -384,7 +384,7 @@
         navigator.share({
           files: [file],
           title: subject,
-          text: body + " Envíalo a: " + state.config.email
+          text: shareText
         }).catch(function () {});
         return;
       }
@@ -393,10 +393,11 @@
     }
 
     XLSX.writeFile(wb, filename);
-    showToast("Excel descargado. Adjúntalo manualmente al correo.");
+    showToast("Excel descargado (" + filename + "). Se abrirá tu correo: adjúntalo manualmente antes de enviar.");
+    var fallbackBody = "Adjunta aquí el archivo " + filename + " que se acaba de descargar a tu dispositivo (revisa la carpeta de Descargas) con el detalle de horas trabajadas y horas adicionales.";
     var mailto = "mailto:" + encodeURIComponent(state.config.email) +
       "?subject=" + encodeURIComponent(subject) +
-      "&body=" + encodeURIComponent(body);
+      "&body=" + encodeURIComponent(fallbackBody);
     setTimeout(function () { window.location.href = mailto; }, 1200);
   }
 
