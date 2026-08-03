@@ -375,30 +375,42 @@
     var subject = "Reporte de horas extra";
     var shareText = "Adjunto el detalle de horas trabajadas y horas adicionales. Envíalo a: " + state.config.email;
 
+    function downloadFallback() {
+      XLSX.writeFile(wb, filename);
+      showToast("Excel descargado (" + filename + "). Se abrirá tu correo: adjúntalo manualmente antes de enviar.");
+      var fallbackBody = "Adjunta aquí el archivo " + filename + " que se acaba de descargar a tu dispositivo (revisa la carpeta de Descargas) con el detalle de horas trabajadas y horas adicionales.";
+      var mailto = "mailto:" + encodeURIComponent(state.config.email) +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(fallbackBody);
+      setTimeout(function () { window.location.href = mailto; }, 1200);
+    }
+
+    var file = null;
+    var canTryShare = false;
     try {
       var wbArray = XLSX.write(wb, { bookType: "xlsx", type: "array" });
       var blob = new Blob([wbArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      var file = new File([blob], filename, { type: blob.type });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-          files: [file],
-          title: subject,
-          text: shareText
-        }).catch(function () {});
-        return;
-      }
+      file = new File([blob], filename, { type: blob.type });
+      canTryShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
     } catch (e) {
-      // sigue al fallback de descarga
+      canTryShare = false;
     }
 
-    XLSX.writeFile(wb, filename);
-    showToast("Excel descargado (" + filename + "). Se abrirá tu correo: adjúntalo manualmente antes de enviar.");
-    var fallbackBody = "Adjunta aquí el archivo " + filename + " que se acaba de descargar a tu dispositivo (revisa la carpeta de Descargas) con el detalle de horas trabajadas y horas adicionales.";
-    var mailto = "mailto:" + encodeURIComponent(state.config.email) +
-      "?subject=" + encodeURIComponent(subject) +
-      "&body=" + encodeURIComponent(fallbackBody);
-    setTimeout(function () { window.location.href = mailto; }, 1200);
+    if (canTryShare) {
+      navigator.share({
+        files: [file],
+        title: subject,
+        text: shareText
+      }).then(function () {
+        showToast("Reporte compartido");
+      }).catch(function (err) {
+        if (err && err.name === "AbortError") return;
+        downloadFallback();
+      });
+      return;
+    }
+
+    downloadFallback();
   }
 
   function finishOnboarding() {
