@@ -139,8 +139,8 @@
   function formatReportDate(dateKey) {
     var parts = dateKey.split("-").map(Number);
     var d = new Date(parts[0], parts[1] - 1, parts[2]);
-    var month = d.toLocaleDateString("es-ES", { month: "long" });
-    return pad2(parts[2]) + "/" + month + "/" + parts[0];
+    var base = d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    return base + " de " + parts[0];
   }
 
   var state = { config: loadConfig(), records: loadRecords() };
