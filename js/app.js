@@ -136,6 +136,13 @@
     return d.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
   }
 
+  function formatReportDate(dateKey) {
+    var parts = dateKey.split("-").map(Number);
+    var d = new Date(parts[0], parts[1] - 1, parts[2]);
+    var month = d.toLocaleDateString("es-ES", { month: "long" });
+    return pad2(parts[2]) + "/" + month + "/" + parts[0];
+  }
+
   var state = { config: loadConfig(), records: loadRecords() };
 
   var els = {};
@@ -383,15 +390,18 @@
 
   function buildReportRows() {
     var keys = Object.keys(state.records).sort();
-    var rows = [["Fecha", "Día", "Entrada", "Salida", "Salida programada", "Diferencia", "Horas adicionales", "Total horas"]];
+    var rows = [["Día", "Entrada", "Salida", "Salida programada", "Diferencia", "Horas adicionales", "Total horas"]];
+    var sumDiff = 0;
+    var sumAdicional = 0;
     keys.forEach(function (key) {
       var record = state.records[key];
       var scheduledEnd = scheduledEndMinutes(key);
       var diff = diffMinutes(record, key);
       var total = totalDeltaMinutes(record, key);
+      sumDiff += diff || 0;
+      sumAdicional += additionalMinutes(record);
       rows.push([
-        key,
-        formatDateLabel(key),
+        formatReportDate(key),
         record.entrada || "",
         record.salida || "",
         scheduledEnd === null ? "" : minutesToHHMM(scheduledEnd),
@@ -400,6 +410,12 @@
         total === null ? "" : formatSignedDuration(total)
       ]);
     });
+    rows.push([
+      "TOTAL A PAGAR", "", "", "",
+      formatSignedDuration(sumDiff),
+      formatSignedDuration(sumAdicional),
+      formatSignedDuration(sumDiff + sumAdicional)
+    ]);
     return rows;
   }
 
@@ -412,7 +428,7 @@
 
     var rows = buildReportRows();
     var ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"] = [{ wch: 12 }, { wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 12 }];
+    ws["!cols"] = [{ wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 12 }];
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Horas extra");
 

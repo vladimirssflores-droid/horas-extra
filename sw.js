@@ -1,4 +1,4 @@
-var CACHE_NAME = "horas-extra-v4";
+var CACHE_NAME = "horas-extra-v5";
 var ASSETS = [
   "./",
   "./index.html",
