@@ -196,6 +196,9 @@ html, body {
   margin-top: 2px;
 }
 
+.total-value.is-positive { color: var(--sage-dark); }
+.total-value.is-negative { color: var(--terracotta-dark); }
+
 .actions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -285,6 +288,9 @@ html, body {
   color: var(--tan-primary-dark);
   font-size: 14px;
 }
+
+.history-item-total.is-positive { color: var(--sage-dark); }
+.history-item-total.is-negative { color: var(--terracotta-dark); }
 
 .schedule-list {
   display: flex;

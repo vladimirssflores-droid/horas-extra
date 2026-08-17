@@ -70,11 +70,30 @@
     return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
   }
 
-  function formatDuration(totalMinutes) {
-    totalMinutes = Math.max(0, Math.round(totalMinutes || 0));
+  function formatSignedDuration(totalMinutes) {
+    var minutes = Math.round(totalMinutes || 0);
+    var sign = minutes > 0 ? "+" : minutes < 0 ? "-" : "";
+    var abs = Math.abs(minutes);
+    var h = Math.floor(abs / 60);
+    var m = abs % 60;
+    return sign + h + "h " + pad2(m) + "m";
+  }
+
+  function minutesToHHMM(totalMinutes) {
     var h = Math.floor(totalMinutes / 60);
     var m = totalMinutes % 60;
-    return h + "h " + pad2(m) + "m";
+    return pad2(h) + ":" + pad2(m);
+  }
+
+  function weekdayForKey(dateKey) {
+    var parts = dateKey.split("-").map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]).getDay();
+  }
+
+  function scheduledEndMinutes(dateKey) {
+    var day = state.config.schedule[weekdayForKey(dateKey)];
+    if (!day || !day.enabled || !day.end) return null;
+    return timeToMinutes(day.end);
   }
 
   function workedMinutes(record) {
@@ -90,8 +109,25 @@
     return (record && record.adicionales ? record.adicionales : 0) * 60;
   }
 
-  function totalMinutes(record) {
-    return workedMinutes(record) + additionalMinutes(record);
+  // Diferencia entre la salida marcada y la salida programada en el horario.
+  // Si el día no tiene horario configurado (día libre), toda la jornada trabajada cuenta como diferencia.
+  function diffMinutes(record, dateKey) {
+    if (!record || !record.entrada || !record.salida) return null;
+    var scheduledEnd = scheduledEndMinutes(dateKey);
+    if (scheduledEnd === null) return workedMinutes(record);
+    return timeToMinutes(record.salida) - scheduledEnd;
+  }
+
+  function totalDeltaMinutes(record, dateKey) {
+    var diff = diffMinutes(record, dateKey);
+    if (diff === null) return null;
+    return diff + additionalMinutes(record);
+  }
+
+  function applySignClass(el, minutes) {
+    el.classList.remove("is-positive", "is-negative");
+    if (minutes > 0) el.classList.add("is-positive");
+    else if (minutes < 0) el.classList.add("is-negative");
   }
 
   function formatDateLabel(dateKey) {
@@ -219,9 +255,16 @@
     }
     els["status-text"].textContent = statusText;
 
-    els["total-jornada"].textContent = formatDuration(workedMinutes(record));
-    els["total-adicionales"].textContent = formatDuration(additionalMinutes(record));
-    els["total-dia"].textContent = formatDuration(totalMinutes(record));
+    var diff = diffMinutes(record, key);
+    var total = totalDeltaMinutes(record, key);
+
+    els["total-jornada"].textContent = diff === null ? "0h 00m" : formatSignedDuration(diff);
+    applySignClass(els["total-jornada"], diff || 0);
+
+    els["total-adicionales"].textContent = formatSignedDuration(additionalMinutes(record));
+
+    els["total-dia"].textContent = total === null ? "0h 00m" : formatSignedDuration(total);
+    applySignClass(els["total-dia"], total || 0);
 
     renderHistory();
   }
@@ -254,9 +297,11 @@
       left.appendChild(dateEl);
       left.appendChild(detail);
 
+      var total = totalDeltaMinutes(record, key);
       var right = document.createElement("div");
       right.className = "history-item-total";
-      right.textContent = formatDuration(totalMinutes(record));
+      right.textContent = total === null ? "0h 00m" : formatSignedDuration(total);
+      applySignClass(right, total || 0);
 
       item.appendChild(left);
       item.appendChild(right);
@@ -338,17 +383,21 @@
 
   function buildReportRows() {
     var keys = Object.keys(state.records).sort();
-    var rows = [["Fecha", "Día", "Entrada", "Salida", "Horas jornada", "Horas adicionales", "Total horas"]];
+    var rows = [["Fecha", "Día", "Entrada", "Salida", "Salida programada", "Diferencia", "Horas adicionales", "Total horas"]];
     keys.forEach(function (key) {
       var record = state.records[key];
+      var scheduledEnd = scheduledEndMinutes(key);
+      var diff = diffMinutes(record, key);
+      var total = totalDeltaMinutes(record, key);
       rows.push([
         key,
         formatDateLabel(key),
         record.entrada || "",
         record.salida || "",
-        formatDuration(workedMinutes(record)),
-        formatDuration(additionalMinutes(record)),
-        formatDuration(totalMinutes(record))
+        scheduledEnd === null ? "" : minutesToHHMM(scheduledEnd),
+        diff === null ? "" : formatSignedDuration(diff),
+        formatSignedDuration(additionalMinutes(record)),
+        total === null ? "" : formatSignedDuration(total)
       ]);
     });
     return rows;
@@ -363,7 +412,7 @@
 
     var rows = buildReportRows();
     var ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"] = [{ wch: 12 }, { wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 14 }, { wch: 16 }, { wch: 12 }];
+    ws["!cols"] = [{ wch: 12 }, { wch: 20 }, { wch: 9 }, { wch: 9 }, { wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 12 }];
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Horas extra");
 
